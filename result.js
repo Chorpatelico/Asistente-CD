@@ -19,11 +19,11 @@ function renderToHtml(text){
 async function load(){
   const draftId=getDraftId();
   if(!draftId){
-    qs("#report").value="No se encontró el borrador del informe. ";
+    qs("#report").value="No se encontró el borrador del informe.";
     return;
   }
 
-  const key="draft: "+draftId;
+  const key="draft:"+draftId;
   const data=await chrome.storage.local.get(key);
   const item=data[key];
 
@@ -33,7 +33,7 @@ async function load(){
   }
 
   const report=qs("#report");
-  report.value=(item?. reportText||"").trim();
+  report.value=(item?.reportText||"").trim();
   qs("#rendered").innerHTML=renderToHtml(report.value);
 }
 

@@ -1,4 +1,4 @@
-: root{
+:root{
   --bg-primary:#0f172a;
   --bg-card:#1e293b;
   --border:#334155;
@@ -30,12 +30,12 @@ header{
 h1{
   margin:0 0 8px;
   font-size:28px;
-  font-weight: 700;
+  font-weight:700;
   color:var(--text);
 }
 
 .subtitle{
-  margin: 0;
+  margin:0;
   color:var(--text-muted);
   font-size:14px;
 }
@@ -45,14 +45,14 @@ h1{
   border:1px solid var(--border);
   border-radius:16px;
   padding:24px;
-  margin: 16px 0;
+  margin:16px 0;
   box-shadow:0 4px 6px -1px rgba(0,0,0,0.2);
 }
 
 h2{
   margin:0 0 16px;
-  font-size: 16px;
-  font-weight: 600;
+  font-size:16px;
+  font-weight:600;
   color:var(--text);
 }
 
@@ -91,7 +91,7 @@ button{
   font-weight:700;
   font-family:inherit;
   font-size:14px;
-  transition: all 0.2s ease;
+  transition:all 0.2s ease;
 }
 
 #printPdf{
@@ -110,10 +110,10 @@ button{
     background:white;
     color:black;
   }
-  . no-print{
-    display:none! important;
+  .no-print{
+    display:none!important;
   }
-  . wrap{
+  .wrap{
     padding:0;
     max-width:none;
   }
@@ -133,6 +133,6 @@ button{
   }
 }
 
-. print-only{
+.print-only{
   display:none;
 }

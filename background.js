@@ -5,7 +5,7 @@ async function openOrFocusTab(existingTabId, url) {
     try {
       const tab = await chrome.tabs.get(existingTabId);
       if (tab?.id) {
-        await chrome. tabs.update(tab.id, {active: true, url});
+        await chrome.tabs.update(tab.id, {active: true, url});
         return tab.id;
       }
     } catch {
@@ -16,13 +16,13 @@ async function openOrFocusTab(existingTabId, url) {
   return tab.id;
 }
 
-chrome.action. onClicked.addListener(async () => {
+chrome.action.onClicked.addListener(async () => {
   const url = chrome.runtime.getURL("form.html");
   lastFormTabId = await openOrFocusTab(lastFormTabId, url);
 });
 
 async function findExistingNotebookTab() {
-  const tabs = await chrome. tabs.query({});
+  const tabs = await chrome.tabs.query({});
   for (const tab of tabs) {
     if (tab.url && tab.url.includes("notebooklm.google.com")) {
       return tab;
@@ -45,9 +45,9 @@ async function notifyFormReportReady(draftId) {
   }
 }
 
-chrome. runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type !== "analizar-protocolo") return;
-  if (sender?. tab?.id) lastFormTabId = sender?. tab?.id;
+  if (sender?.tab?.id) lastFormTabId = sender?.tab?.id;
 
   (async () => {
     try {
@@ -56,7 +56,7 @@ chrome. runtime.onMessage.addListener((request, sender, sendResponse) => {
 
       const notebookTab = await findExistingNotebookTab();
       if (!notebookTab?.id) {
-        sendResponse({ok:  false, error:  "Abre el servicio de análisis en otra pestaña"});
+        sendResponse({ok: false, error: "Abre el servicio de análisis en otra pestaña"});
         return;
       }
 
@@ -64,7 +64,7 @@ chrome. runtime.onMessage.addListener((request, sender, sendResponse) => {
         ["draft:" + draftId]: {
           createdAt: new Date().toISOString(),
           protocoloText,
-          reportText:  "",
+          reportText: "",
           finalReady: false
         }
       });
@@ -85,14 +85,14 @@ chrome. runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 chrome.runtime.onMessage.addListener((request) => {
-  if (request. type !== "NBLM_REPORT_FINAL") return;
+  if (request.type !== "NBLM_REPORT_FINAL") return;
 
   (async () => {
     const {draftId, reportText} = request;
     if (!draftId) return;
 
     const key = "draft:" + draftId;
-    const data = await chrome.storage.local. get(key);
+    const data = await chrome.storage.local.get(key);
     const item = data[key];
     if (!item) return;
 

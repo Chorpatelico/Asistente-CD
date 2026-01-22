@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       if(checkbox.checked){
         addBtn.style.display="block";
       }else{
-        addBtn. style.display="none";
+        addBtn.style.display="none";
         extrasContainer.innerHTML="";
       }
     });
@@ -77,13 +77,13 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   // Cargar catexias negativas ACR
   negativasContainer.appendChild(createCatexiaFija(1,"MAPACHE",1,"porque huelen mal, me pueden tirar a la basura y matar",""));
-  negativasContainer. appendChild(createCatexiaFija(2,"UN ORDENADOR",4,"porque me usarían y cuando se acabe la batería no podría respirar",""));
+  negativasContainer.appendChild(createCatexiaFija(2,"UN ORDENADOR",4,"porque me usarían y cuando se acabe la batería no podría respirar",""));
   negativasContainer.appendChild(createCatexiaFija(3,"UNA ROSA",10,"porque me arrancarían, me quitarían las espinas y tendría mucho dolor",""));
 
   function readCatexias(container){
     const items=Array.from(container.querySelectorAll(".catexia-item"));
     return items.map(item=>{
-      const simbolo=item.querySelector(".simbolo")?.value?. trim()||"";
+      const simbolo=item.querySelector(".simbolo")?.value?.trim()||"";
       const tr=Number(item.querySelector(".tr")?.value||0);
       const justificacion=item.querySelector(".justificacion")?.value?.trim()||"";
       const observaciones=item.querySelector(".observaciones")?.value?.trim()||"";
@@ -99,10 +99,10 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   function buildPrompt(p){
     const formatCatexia=(cat,idx)=>{
-      let text=`${idx+1}.  Símbolo: ${cat.simbolo} | TR(s): ${cat.tr}\n   Justificación: ${cat. justificacion}\n   Observaciones: ${cat.observaciones}`;
+      let text=`${idx+1}. Símbolo: ${cat.simbolo} | TR(s): ${cat.tr}\n   Justificación: ${cat.justificacion}\n   Observaciones: ${cat.observaciones}`;
       if(cat.extras&&cat.extras.length>0){
         text+="\n   Cambios: ";
-        cat.extras. forEach((ex,i)=>{
+        cat.extras.forEach((ex,i)=>{
           text+=`\n      ${i+1}. ${ex.simbolo} | TR(s): ${ex.tr}`;
         });
       }
@@ -115,9 +115,9 @@ document.addEventListener("DOMContentLoaded",()=>{
     const protocolo=[
       "Edad: "+p.edad,
       "Sexo: "+p.genero,
-      "Nivel educativo:  "+p.nivel_educativo,
+      "Nivel educativo: "+p.nivel_educativo,
       "Fecha: "+p.fecha,
-      "Modalidad: "+p. modalidad,
+      "Modalidad: "+p.modalidad,
       "",
       "CATEXIAS POSITIVAS:",
       listPos,
@@ -133,9 +133,9 @@ document.addEventListener("DOMContentLoaded",()=>{
       "",
       "Información relevante:",
       p.informacion||"-"
-    ]. join("\n");
+    ].join("\n");
 
-    return `Analiza integralmente este protocolo sin modificar ni alterar los títulos de los epígrafes bajo ningún concepto mediante el esquema de la fuente "Análisis integral".  Al finalizar el apartado VII, escribe en una línea aparte:  FIN DEL INFORME. 
+    return `Analiza integralmente este protocolo sin modificar ni alterar los títulos de los epígrafes bajo ningún concepto mediante el esquema de la fuente "Análisis integral". Al finalizar el apartado VII, escribe en una línea aparte: FIN DEL INFORME. 
 
 PROTOCOLO A ANALIZAR: 
 Nombre/ID: ${p.nombre}
@@ -145,12 +145,12 @@ ${protocolo}`;
 
   function validateForm(protocolo){
     if(!protocolo.nombre){
-      return "Completa el campo Nombre/ID. ";
+      return "Completa el campo Nombre/ID.";
     }
-    if(! protocolo.edad||protocolo.edad<4||protocolo.edad>100){
+    if(!protocolo.edad||protocolo.edad<4||protocolo.edad>100){
       return "La edad debe estar entre 4 y 100 años.";
     }
-    if(!protocolo. fecha){
+    if(!protocolo.fecha){
       return "Selecciona una fecha.";
     }
     return null;
@@ -175,7 +175,7 @@ ${protocolo}`;
   }
 
   chrome.runtime.onMessage.addListener((msg)=>{
-    if(msg?. type==="REPORT_READY"){
+    if(msg?.type==="REPORT_READY"){
       setBusy(false);
     }
   });
@@ -187,11 +187,11 @@ ${protocolo}`;
       genero:document.getElementById("genero").value,
       nivel_educativo:document.getElementById("nivel_educativo").value,
       fecha:document.getElementById("fecha").value,
-      modalidad:document. getElementById("modalidad").value,
+      modalidad:document.getElementById("modalidad").value,
       informacion:document.getElementById("informacion").value.trim(),
       positivas:readCatexias(positivasContainer),
       negativas:readCatexias(negativasContainer),
-      asociaciones:document.getElementById("asociaciones").value. trim(),
+      asociaciones:document.getElementById("asociaciones").value.trim(),
       recuerdo:document.getElementById("recuerdo").value.trim()
     };
 
@@ -206,9 +206,9 @@ ${protocolo}`;
     setBusy(true);
     const resp=await startAnalysis(protocoloText);
 
-    if(! resp?. ok){
+    if(!resp?.ok){
       setBusy(false);
-      alert(resp?. error||"Error al procesar");
+      alert(resp?.error||"Error al procesar");
       return;
     }
   });
@@ -221,7 +221,7 @@ ${protocolo}`;
     positivasContainer.appendChild(createCatexiaFija(3));
     negativasContainer.appendChild(createCatexiaFija(1));
     negativasContainer.appendChild(createCatexiaFija(2));
-    negativasContainer. appendChild(createCatexiaFija(3));
+    negativasContainer.appendChild(createCatexiaFija(3));
     document.getElementById("asociaciones").value="";
     document.getElementById("recuerdo").value="";
   });
