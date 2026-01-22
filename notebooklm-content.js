@@ -1,222 +1,77 @@
-let observer = null;
-let startedAtMs = 0;
-let finalized = false;
-
-const MIN_TEXT_LENGTH = 200;
-const MAX_CHECKS = 500;
-
-function getPromptTextarea() {
-  let el = document.querySelector('textarea[aria-label="Cuadro de consulta"]');
-  if (el) return el;
-
-  el = document.querySelector("textarea.query-box-input");
-  if (el) return el;
-
-  const textareas = document.querySelectorAll("textarea");
-  for (const ta of textareas) {
-    if (ta.offsetParent !== null && ta.clientHeight > 30) {
-      return ta;
-    }
-  }
-
-  return null;
-}
-
-function normalizeText(s) {
-  return (s || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[“”]/g, '"')
-    .replace(/[‘’]/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-const ANCHORS = [
-  "fin del informe",
-  "i. encuadre e implementacion",
-  "i encuadre e implementacion",
-  "ii. mecanismos instrumentales (funcionamiento yoico)",
-  "ii mecanismos instrumentales (funcionamiento yoico)",
-  "ii. mecanismos instrumentales",
-  "iii. manejo y tipos de ansiedad",
-  "iii manejo y tipos de ansiedad",
-  "iv. secuencia de reinos y fantasias de muerte",
-  "iv secuencia de reinos y fantasias de muerte",
-  "v. analisis estructural (ello, yo, superyo)",
-  "v analisis estructural (ello, yo, superyo)",
-  "v. analisis estructural",
-  "vi. perspectiva adl (algoritmo david liberman)",
-  "vi perspectiva adl (algoritmo david liberman)",
-  "vi. perspectiva adl",
-  "vii. hipotesis diagnostica y pronostico",
-  "vii hipotesis diagnostica y pronostico",
-  "represion fundante",
-  "identificacion proyectiva",
-  "racionalizacion",
-  "tipo de distribucion",
-  "tipos de distribucion",
-  "algoritmo david liberman",
-  "li, o1, o2, a1, a2, fu, fg",
-  "li,o1,o2,a1,a2,fu,fg",
-  "neurosis",
-  "psicosis",
-  "psicopatia",
-  "1 disociacion",
-  "2 disociacion"
-];
-
-function countAnchors(normalizedText) {
-  let count = 0;
-  for (const a of ANCHORS) {
-    if (normalizedText.includes(a)) count++;
-  }
-  return count;
-}
-
-function hasFinalMarker(normalizedText) {
-  return normalizedText.includes("fin del informe");
-}
-
-function extractLikelyAnswerText() {
-  const selectors = [
-    "main",
-    "[role='main']",
-    ".response-container",
-    ".answer-content",
-    "article",
-    "section"
-  ];
-
-  const blocks = [];
-
-  for (const selector of selectors) {
-    const elements = document.querySelectorAll(selector);
-    for (const el of elements) {
-      const text = el.innerText ? el.innerText.trim() : "";
-      if (text && text.length >= MIN_TEXT_LENGTH) {
-        blocks.push(text);
-      }
-    }
-  }
-
-  blocks.sort((a, b) => b.length - a.length);
-  return blocks[0] || "";
-}
-
-function stop() {
-  if (observer) {
-    observer.disconnect();
-  }
-  observer = null;
-}
-
-function startObservingFinal(draftId) {
-  finalized = false;
-  stop();
-
-  let lastGoodCandidate = "";
-  let checkCount = 0;
-
-  observer = new MutationObserver(() => {
-    if (finalized) return;
-    if (!startedAtMs) return;
-
-    checkCount++;
-    if (checkCount > MAX_CHECKS) {
-      console.warn("Límite de verificaciones alcanzado");
-      stop();
-      return;
-    }
-
-    const candidate = extractLikelyAnswerText();
-    if (!candidate) return;
-
-    const normalized = normalizeText(candidate);
-    if (countAnchors(normalized) < 5) return;
-
-    lastGoodCandidate = candidate;
-
-    if (hasFinalMarker(normalized)) {
-      finalized = true;
-      stop();
-      chrome.runtime.sendMessage({
-        type: "NBLM_REPORT_FINAL",
-        draftId,
-        reportText: lastGoodCandidate
-      });
-    }
-  });
-
-  const targetNode = document.querySelector("main") || document.body;
-  observer.observe(targetNode, {
-    childList: true,
-    subtree: true,
-    characterData: true
-  });
-}
-
-function dispatchEnter(el) {
-  const eventInit = {
-    bubbles: true,
-    cancelable: true,
-    key: "Enter",
-    code: "Enter",
-    keyCode: 13,
-    which: 13
-  };
-  el.dispatchEvent(new KeyboardEvent("keydown", eventInit));
-  el.dispatchEvent(new KeyboardEvent("keypress", eventInit));
-  el.dispatchEvent(new KeyboardEvent("keyup", eventInit));
-}
-
-function clickSendButton() {
-  const sendBtn = document.querySelector(
-    'button[aria-label="Enviar"], button[aria-label="Send"], button[type="submit"]'
-  );
-  if (!sendBtn) return false;
-  sendBtn.click();
-  return true;
-}
-
-function sendPromptWithEnter(text) {
-  const el = getPromptTextarea();
-  if (!el) {
-    console.error("No se encontró el cuadro de consulta");
-    return false;
-  }
-
-  el.focus();
-  el.value = text;
-
-  el.dispatchEvent(
-    new InputEvent("input", {
-      bubbles: true,
-      data: text,
-      inputType: "insertText"
-    })
-  );
-  el.dispatchEvent(new Event("change", { bubbles: true }));
-
-  if (!clickSendButton()) {
-    dispatchEnter(el);
-  }
-
-  return true;
-}
+// notebooklm-content.js
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type !== "NBLM_START") return;
-
-  const { draftId, protocoloText } = request;
-  startedAtMs = Date.now();
-
-  const ok = sendPromptWithEnter(protocoloText);
-  if (ok) {
-    startObservingFinal(draftId);
+  if (request.type === "NBLM_START") {
+    ejecutarEnvio(request.protocoloText, request.draftId);
+    sendResponse({ ok: true });
   }
-
-  if (sendResponse) sendResponse({ ok });
   return true;
 });
+
+async function ejecutarEnvio(text, draftId) {
+  const box = document.querySelector('textarea[aria-label*="consulta"]') || 
+              document.querySelector('div[contenteditable="true"]');
+  if (!box) return;
+
+  box.focus();
+  document.execCommand('selectAll', false, null);
+  document.execCommand('insertText', false, text);
+
+  await new Promise(r => setTimeout(r, 600));
+
+  const btn = document.querySelector('button[aria-label*="Enviar"]') || 
+              document.querySelector('button[aria-label*="Send"]');
+  if (btn) btn.click();
+
+  // Iniciar vigilancia después de enviar
+  iniciarMonitoreo(draftId);
+}
+
+function iniciarMonitoreo(draftId) {
+  let lastText = "";
+  let checkTicks = 0;
+
+  const interval = setInterval(() => {
+    const blocks = document.querySelectorAll('.response-text, [role="article"], .markdown-content');
+    const lastBlock = blocks[blocks.length - 1];
+    const isThinking = document.querySelector('button[aria-label*="Detener"], button[aria-label*="Stop"]');
+    const sendBtn = document.querySelector('button[aria-label*="Enviar"], button[aria-label*="Send"]');
+
+    if (!lastBlock) return;
+
+    const currentText = lastBlock.innerText;
+    const normalized = currentText.toUpperCase().replace(/[*_#]/g, "");
+
+    // ANCLAS DE DETECCIÓN
+    const anclaTexto = normalized.includes("FIN DEL INFORME") || 
+                       normalized.includes("FIN DEL ANÁLISIS") || 
+                       normalized.includes("CORDIALMENTE");
+    
+    // ANCLA DE INTERFAZ: El botón de enviar volvió y el texto ya no crece
+    const anclaInterfaz = !isThinking && sendBtn && currentText.length > 500 && currentText === lastText;
+
+    if (anclaTexto || anclaInterfaz) {
+      checkTicks++;
+      if (checkTicks >= 3) { // Confirmación de seguridad
+        clearInterval(interval);
+        comunicarFinal(draftId, currentText);
+      }
+    } else {
+      lastText = currentText;
+      checkTicks = 0;
+    }
+  }, 800);
+}
+
+function comunicarFinal(draftId, text) {
+  chrome.runtime.sendMessage({
+    type: "NBLM_REPORT_FINAL",
+    draftId: draftId,
+    reportText: text
+  }, (response) => {
+    if (chrome.runtime.lastError) {
+      // Si falla, reintenta en 1 segundo (el background se está despertando)
+      setTimeout(() => comunicarFinal(draftId, text), 1000);
+    }
+  });
+}

@@ -1,113 +1,53 @@
-let lastFormTabId = null;
+// background.js
 
-async function openOrFocusTab(existingTabId, url) {
-  if (existingTabId) {
-    try {
-      const tab = await chrome.tabs.get(existingTabId);
-      if (tab?.id) {
-        await chrome.tabs.update(tab.id, {active: true, url});
-        return tab.id;
-      }
-    } catch {
-      // Ignorar si falla
-    }
-  }
-  const tab = await chrome.tabs.create({url});
-  return tab.id;
-}
-
-chrome.action.onClicked.addListener(async () => {
-  const url = chrome.runtime.getURL("form.html");
-  lastFormTabId = await openOrFocusTab(lastFormTabId, url);
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("form.html") });
 });
-
-async function findExistingNotebookTab() {
-  const tabs = await chrome.tabs.query({});
-  for (const tab of tabs) {
-    if (tab.url && tab.url.includes("notebooklm.google.com")) {
-      return tab;
-    }
-  }
-  return null;
-}
-
-async function openResultTab(draftId) {
-  const url = chrome.runtime.getURL(`result.html?draftId=${encodeURIComponent(draftId)}`);
-  await chrome.tabs.create({url});
-}
-
-async function notifyFormReportReady(draftId) {
-  if (!lastFormTabId) return;
-  try {
-    await chrome.tabs.sendMessage(lastFormTabId, {type: "REPORT_READY", draftId});
-  } catch {
-    // Formulario cerrado/no disponible
-  }
-}
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type !== "analizar-protocolo") return;
-  if (sender?.tab?.id) lastFormTabId = sender?.tab?.id;
+  if (request.type === "analizar-protocolo") {
+    handleStart(request, sendResponse);
+    return true; 
+  }
 
-  (async () => {
-    try {
-      const protocoloText = request.protocoloText;
-      const draftId = String(Date.now());
-
-      const notebookTab = await findExistingNotebookTab();
-      if (!notebookTab?.id) {
-        sendResponse({ok: false, error: "Abre el servicio de análisis en otra pestaña"});
-        return;
-      }
-
-      await chrome.storage.local.set({
-        ["draft:" + draftId]: {
-          createdAt: new Date().toISOString(),
-          protocoloText,
-          reportText: "",
-          finalReady: false
-        }
-      });
-
-      await chrome.tabs.sendMessage(notebookTab.id, {
-        type: "NBLM_START",
-        draftId,
-        protocoloText
-      });
-
-      sendResponse({ok: true, draftId});
-    } catch (e) {
-      sendResponse({ok: false, error: "Error al procesar la solicitud"});
-    }
-  })();
-
-  return true;
+  if (request.type === "NBLM_REPORT_FINAL") {
+    handleFinish(request.draftId, request.reportText);
+    return false;
+  }
 });
 
-chrome.runtime.onMessage.addListener((request) => {
-  if (request.type !== "NBLM_REPORT_FINAL") return;
+async function handleStart(request, sendResponse) {
+  const tabs = await chrome.tabs.query({ url: "*://notebooklm.google.com/*" });
+  if (tabs.length === 0) {
+    sendResponse({ ok: false, error: "Abre NotebookLM primero." });
+    return;
+  }
 
-  (async () => {
-    const {draftId, reportText} = request;
-    if (!draftId) return;
+  const draftId = "D" + Date.now();
+  await chrome.storage.local.set({
+    ["draft:" + draftId]: { protocoloText: request.protocoloText, finalReady: false }
+  });
 
-    const key = "draft:" + draftId;
-    const data = await chrome.storage.local.get(key);
-    const item = data[key];
-    if (!item) return;
+  chrome.tabs.sendMessage(tabs[0].id, {
+    type: "NBLM_START",
+    draftId,
+    protocoloText: request.protocoloText
+  });
+  
+  sendResponse({ ok: true, draftId });
+}
 
-    const fullReport = reportText + "\n\n---\n\nNota: Este análisis constituye un conjunto de hipótesis clínicas preliminares que requieren la validación obligatoria de un profesional capacitado. El juicio clínico del evaluador es ineludible para integrar estos hallazgos mediante el estudio de recurrencias y convergencias con la batería diagnóstica completa. Una interpretación automatizada no sustituye la escucha analítica necesaria para captar la singularidad del sujeto.";
+async function handleFinish(draftId, text) {
+  const key = "draft:" + draftId;
+  const data = await chrome.storage.local.get(key);
+  
+  const formattedText = text + "\n\n---\n[INFORME GENERADO AUTOMÁTICAMENTE]";
+  
+  await chrome.storage.local.set({
+    [key]: { ...(data[key] || {}), reportText: formattedText, finalReady: true }
+  });
 
-    await chrome.storage.local.set({
-      [key]: {
-        ...item,
-        reportText: fullReport,
-        finalReady: true,
-        updatedAt: new Date().toISOString()
-      }
-    });
-
-    await openResultTab(draftId);
-    await notifyFormReportReady(draftId);
-  })();
-});
+  // Abrir pestaña de resultados
+  const url = chrome.runtime.getURL(`result.html?draftId=${draftId}`);
+  chrome.tabs.create({ url, active: true });
+}
