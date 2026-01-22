@@ -1,4 +1,4 @@
-: root{
+:root{
   --bg-primary:#0f172a;
   --bg-secondary:#1e293b;
   --bg-card:#1e293b;
@@ -61,14 +61,14 @@ h1{
   border:1px solid var(--border);
   border-radius:12px;
   padding:14px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  margin-bottom:12px;
+  box-shadow:0 2px 4px rgba(0,0,0,0.15);
 }
 
 h2{
   margin:0 0 12px;
-  font-size: 15px;
-  font-weight: 600;
+  font-size:15px;
+  font-weight:600;
   color:var(--text);
   border-bottom:2px solid var(--primary);
   padding-bottom:6px;
@@ -93,8 +93,8 @@ input,select,textarea{
   border:1px solid var(--border);
   background:var(--bg-primary);
   color:var(--text);
-  font-family: inherit;
-  font-size: 13px;
+  font-family:inherit;
+  font-size:13px;
   transition:all 0.2s ease;
 }
 
@@ -127,7 +127,7 @@ input:focus,select:focus,textarea:focus{
 
 .catexia-header{
   font-size:12px;
-  font-weight: 600;
+  font-weight:600;
   color:var(--primary);
   margin-bottom:8px;
   padding-bottom:4px;
@@ -157,7 +157,7 @@ input:focus,select:focus,textarea:focus{
   display:flex;
   align-items:center;
   gap:6px;
-  margin-bottom: 8px;
+  margin-bottom:8px;
 }
 
 .checkbox-row input[type="checkbox"]{
@@ -167,7 +167,7 @@ input:focus,select:focus,textarea:focus{
 }
 
 .checkbox-row label{
-  margin: 0;
+  margin:0;
   cursor:pointer;
   font-size:12px;
 }
@@ -194,8 +194,8 @@ input:focus,select:focus,textarea:focus{
   display:grid;
   grid-template-columns:1fr 90px 36px;
   gap:8px;
-  margin-bottom: 6px;
-  padding: 8px;
+  margin-bottom:6px;
+  padding:8px;
   background:rgba(15,23,42,0.5);
   border-radius:6px;
   border:1px solid rgba(51,65,85,0.5);
@@ -228,12 +228,12 @@ button{
   padding:10px 16px;
   cursor:pointer;
   font-weight:600;
-  font-family: inherit;
-  font-size: 13px;
+  font-family:inherit;
+  font-size:13px;
   transition:all 0.2s ease;
 }
 
-button. primary{
+button.primary{
   background:var(--primary);
   color:white;
 }
@@ -253,13 +253,13 @@ button.secondary:hover{
   background:var(--secondary-hover);
 }
 
-button: disabled{
+button:disabled{
   opacity:0.5;
   cursor:not-allowed;
   transform:none;
 }
 
-. actions{
+.actions{
   margin-bottom:0;
 }
 
@@ -296,7 +296,7 @@ button: disabled{
   .catexias-grid{
     grid-template-columns:1fr;
   }
-  . row{
+  .row{
     grid-template-columns:1fr;
   }
 }

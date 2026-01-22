@@ -6,12 +6,12 @@ function getPromptTextarea(){
   let el=document.querySelector('textarea[aria-label="Cuadro de consulta"]');
   if(el)return el;
 
-  el=document.querySelector("textarea. query-box-input");
+  el=document.querySelector("textarea.query-box-input");
   if(el)return el;
 
   const textareas=document.querySelectorAll("textarea");
   for(const ta of textareas){
-    if(ta.offsetParent! ==null&&ta.clientHeight>30){
+    if(ta.offsetParent!==null&&ta.clientHeight>30){
       return ta;
     }
   }
@@ -36,7 +36,7 @@ const ANCHORS=[
   "i encuadre e implementacion",
   "ii. mecanismos instrumentales (funcionamiento yoico)",
   "ii mecanismos instrumentales (funcionamiento yoico)",
-  "ii.  mecanismos instrumentales",
+  "ii. mecanismos instrumentales",
   "iii. manejo y tipos de ansiedad",
   "iii manejo y tipos de ansiedad",
   "iv. secuencia de reinos y fantasias de muerte",
@@ -46,7 +46,7 @@ const ANCHORS=[
   "v. analisis estructural",
   "vi. perspectiva adl (algoritmo david liberman)",
   "vi perspectiva adl (algoritmo david liberman)",
-  "vi.  perspectiva adl",
+  "vi. perspectiva adl",
   "vii. hipotesis diagnostica y pronostico",
   "vii hipotesis diagnostica y pronostico",
   "represion fundante",
@@ -80,7 +80,7 @@ function extractLikelyAnswerText(){
   const selectors=[
     "main",
     "[role='main']",
-    ". response-container",
+    ".response-container",
     ".answer-content",
     "article",
     "section"
@@ -89,9 +89,9 @@ function extractLikelyAnswerText(){
   const blocks=[];
   
   for(const selector of selectors){
-    const elements=document. querySelectorAll(selector);
+    const elements=document.querySelectorAll(selector);
     for(const el of elements){
-      const text=el.innerText?. trim();
+      const text=el.innerText?.trim();
       if(text&&text.length>400){
         blocks.push(text);
       }
@@ -129,7 +129,7 @@ function startObservingFinal(draftId){
     }
 
     const candidate=extractLikelyAnswerText();
-    if(! candidate)return;
+    if(!candidate)return;
 
     const normalized=normalizeText(candidate);
 
@@ -163,7 +163,7 @@ function sendPromptWithEnter(text){
     return false;
   }
 
-  el. focus();
+  el.focus();
   el.value=text;
   
   el.dispatchEvent(new Event("input",{bubbles:true}));
@@ -190,7 +190,7 @@ function sendPromptWithEnter(text){
 }
 
 chrome.runtime.onMessage.addListener((request,sender,sendResponse)=>{
-  if(request. type!=="NBLM_START")return;
+  if(request.type!=="NBLM_START")return;
 
   const{draftId,protocoloText}=request;
   startedAtMs=Date.now();
